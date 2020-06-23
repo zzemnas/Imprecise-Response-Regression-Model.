@@ -8,7 +8,7 @@ Yl<-myData[,2]
 Yr<-myData[,3]
 X<-myData[,4]
 
-alpha<-0.01 #level of significance
+alpha<-0.01 #significance level
 n<-length(X)
 B<-500
 
@@ -38,11 +38,13 @@ p<alpha
 
 #############II: TEST BASED ON THE ASYMPTOTICAL ANALYSIS OF THE PAPER
 #############THIS SIMULATION USES RANDOM VA (BOTH ERRORS AND EXPLANATORY)
+
 rm(list=ls())
 alpha<-0.1 #significance level
 n<-50 #number of feature vectors
-delta = seq(0,1,length.out=6)/sqrt(n) #sequence of pitman-like alternative hypothesis
+delta = seq(0,7,length.out=6)/sqrt(n) #sequence of pitman-like alternative hypothesis
 a<-as.data.frame(rbind(delta,delta,delta),nrow=3,ncol=3) #matrix of delta
+a
 
 #m<-10000 #number of tests made
 m<-100
@@ -54,14 +56,13 @@ TnB<-numeric(B) #bootstrap replicates
 
 sim <- matrix(0, 6, 4) #matrix used to keep in memory the power of the tests made
 
-for(k in 1:1) {
-  #delta <- a[,k]  
-  delta<-c(1,1,1)
+for(k in 1:6) {
+  deltax <- a[,k]  
   for (i in 1:m) {
     X<-rnorm(n)
-    Ym<-delta[1]*X+rnorm(n)
-    Yl<-delta[2]*X+rnorm(n)
-    Yr<-delta[3]*X+rnorm(n)
+    Ym<-deltax[1]*X+rnorm(n)
+    Yl<-deltax[2]*X+rnorm(n)
+    Yr<-deltax[3]*X+rnorm(n)
     TnData<-Tn(X,Ym,Yl,Yr)
     for (j in 1:B){
       ix=sample(1:n,replace=TRUE)
@@ -70,10 +71,10 @@ for(k in 1:1) {
     p<-mean(TnB>TnData) #probability of observing a value that is more "extreme" than the one observed
     TestB[i] <- as.integer(p <= alpha)
   }
-  print(c(delta, mean(TestB))) #alternative hypothesis + power of the test based on the delta-alt-hypothesis
-  sim[k, ] <- c(delta, mean(TestB))
+  print(c(deltax, mean(TestB))) #alternative hypothesis + power of the test based on the delta-alt-hypothesis
+  sim[k, ] <- c(deltax, mean(TestB))
 } 
-#plot(delta,sim[,4])
-#Results: delta=1 -> pow=0.99, delta=0.1 -> pow=0.12, per delta=0 -> pow=0.08
-
-#https://nceas.github.io/oss-lessons/parallel-computing-in-r/parallel-computing-in-r.html
+plot(delta,sim[,4],xlab="Pitman-like Alternatives",ylab="Power of the tests")
+lines(delta,sim[,4]) #power plot
+abline(h=0.1,col="red")
+legend("topleft", 1,"y=0.1",lty=1,col="red", inset = .02)
